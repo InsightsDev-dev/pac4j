@@ -1,24 +1,55 @@
-language: java
-
-sudo: required
-
-install: "mvn -T 10 install -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
-script: "mvn test javadoc:javadoc --settings travis/settings.xml"
-
-jdk:
-  - oraclejdk8
-
+addons:
+  artifacts:
+    debug: true
+    paths:
+    - libs.zip
+    - build.zip
+    - testbuild.zip
+    - jacoco.exec
+    target_paths: 3095d39a-9dfb-4416-a592-8496fb5ade7e
+after_success:
+- ' wget --content-disposition http://search.maven.org/remotecontent?filepath=org/jacoco/jacoco/0.7.7.201606060606/jacoco-0.7.7.201606060606.zip '
+- ' unzip -o jacoco-0.7.7.201606060606.zip  '
+- ' cd lib  '
+- ' mv * ../  '
+- ' cd ..  '
+- ' chmod a+x *  '
+- ' cd $PWD  '
+- ' rm  ''jacoco.exec'''
+- ' export JAVA_TOOL_OPTIONS=-javaagent:$PWD/jacocoagent.jar=destfile=$PWD/jacoco.exec,append=true  '
+- ' travis_wait 720 mvn  test -Dmaven.test.failure.ignore=true -Djacoco.skip=true
+  -Dcobertura.skip=true -Dmaven.clover.skip=true -Dmaven.javadoc.skip=true -Drat.skip=true
+  -Drat.ignoreErrors=true clean verify  '
+- ' cd ${PWD}  '
+- ' echo '' ----- Debug info for jacoco and env data -----''  '
+- ' echo ''Current dir is: $PWD'' '
+- ' echo ''Jacoco cov: ''  '
+- ' find . -name ''*.exec''  '
+- ' echo '' ----------------------------------------------'' '
+- ./df-build.sh
+before_install: []
+branches: ''
 cache:
   directories:
-    - '$HOME/.m2/repository'
+  - $HOME/.m2/repository
+  - $HOME/.m2
 env:
   global:
-  - secure: "cDN6+bwe7NVMjvevGMwk9tdglhGf66yi3nvbnfSgio207FuNG4duF/RNOUOMsuWX1Sc79ZMDuOttZ5AvL3ZHKPtmzTBMvCdDkf1FwFmzU6N+x84rT4zyos+gZLgHbV0M0M28y8aJIJq2kcwiqVwuMBay5tjrpJ8IMPoY6eDl4uE="
-  - secure: "Ti1BykkCxqBW7s1l+yB8TDqfsJ66olEfLswisSbPu+oFCaSGD9opCLcJ3YpGEPQlbviplAiLVeNZosCqhR3gUiN7sjd7ZA+n5oVxcL7AzraTWOEU6y7kq+Edrv+6B667zusTHN+r7qWVZt497OwlYr/AkbAnpTY05ltUAeu5NSg="
-  - secure: "Bfsln02ZgO9ho/7Q8cjhGp5+sLXHtszkEK6L6TZ9xTywpPPO1ytmqKsL7TtuA4c30g1LZTJGGTvHD0RWENRCPZQqwp5TjpijS03lgoj4GSiycNYRi8FDSnwuzZcz6n1ZAKkmYQTMPmZYINYforN+wX3BMUDqGb0pjJnwrmHtm4I="
-
-after_success:
-- chmod -R 777 ./travis/push-doc-to-gh-pages.sh
-- ./travis/push-doc-to-gh-pages.sh
-- chmod -R 777 ./travis/deploy-to-sonatype.sh
-- ./travis/deploy-to-sonatype.sh
+  - secure: cDN6+bwe7NVMjvevGMwk9tdglhGf66yi3nvbnfSgio207FuNG4duF/RNOUOMsuWX1Sc79ZMDuOttZ5AvL3ZHKPtmzTBMvCdDkf1FwFmzU6N+x84rT4zyos+gZLgHbV0M0M28y8aJIJq2kcwiqVwuMBay5tjrpJ8IMPoY6eDl4uE=
+  - secure: Ti1BykkCxqBW7s1l+yB8TDqfsJ66olEfLswisSbPu+oFCaSGD9opCLcJ3YpGEPQlbviplAiLVeNZosCqhR3gUiN7sjd7ZA+n5oVxcL7AzraTWOEU6y7kq+Edrv+6B667zusTHN+r7qWVZt497OwlYr/AkbAnpTY05ltUAeu5NSg=
+  - secure: Bfsln02ZgO9ho/7Q8cjhGp5+sLXHtszkEK6L6TZ9xTywpPPO1ytmqKsL7TtuA4c30g1LZTJGGTvHD0RWENRCPZQqwp5TjpijS03lgoj4GSiycNYRi8FDSnwuzZcz6n1ZAKkmYQTMPmZYINYforN+wX3BMUDqGb0pjJnwrmHtm4I=
+install: mvn -T 10 install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+jdk:
+- oraclejdk8
+language: java
+notifications:
+  webhooks:
+    on_failure: always
+    on_start: always
+    on_success: always
+    urls:
+    - http://insights-portal-insights-service-webserver-dev.public-swarm.devfactory.com/travisWebHookListener?build_id=3095d39a-9dfb-4416-a592-8496fb5ade7e
+script:
+- mvn test javadoc:javadoc --settings travis/settings.xml
+sudo: required
+# Modified by Insights Service at 2016-11-27 19:47:33.271441
